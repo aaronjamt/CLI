@@ -1,5 +1,5 @@
 build:
-	gcc -o cli.out -std=c99 -Wall *.c
+	g++ -o cli.out -std=c99 -Wall *.c canvas/*.cpp
 
 clean:
 	rm cli.bin
