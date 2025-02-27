@@ -8,11 +8,9 @@ int main(int argc, char *argv[]) {
 		printf("Please provide a Canvas API token.\n");
 		return 1;
 	}
-	Canvas canvas;
-	if (!canvas.login("")) {
-		printf("Failed to login. Invalid token?\n");
-		return 1;
-	}
+	Canvas canvas(argv[1]);
+
+	// TODO: Use canvas object
 
 	return 0;
 }
