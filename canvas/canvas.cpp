@@ -40,16 +40,24 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, void *data) {
     return total_size;
 }
 
-bool Canvas::_request(const char *endpoint) {
+bool Canvas::_request(const char *endpoint, bool is_post) {
+	// Combine the base URL and endpoint to form the full URL
 	char *url = (char*)malloc(strlen(base_url) + strlen(endpoint) + 1);
 	sprintf(url, "%s%s", base_url, endpoint);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
-	std::string read_buffer;
+	// Buffer to store the response body
+	std::string response;
 
 	// Set the write function and the data buffer to store the response
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+	// Set appropriate HTTP request type
+	if (is_post)
+		curl_easy_setopt(curl, CURLOPT_POST, 1);
+	else
+		curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 
 	// Perform the request, res gets the return code
 	res = curl_easy_perform(curl);
@@ -59,7 +67,7 @@ bool Canvas::_request(const char *endpoint) {
 	else {
 		printf("Got response from the server!\n");
 
-		auto json_response = nlohmann::json::parse(read_buffer);
+		auto json_response = nlohmann::json::parse(response);
 		std::cout << "First course name: " << json_response[0]["name"] << std::endl;
 	}
 

@@ -22,7 +22,12 @@ class Canvas {
 	CURL *curl;
 	CURLcode res;
 
-	bool _request(const char *endpoint); //, const char *method, headers=None, data=None
+	bool _request(const char *endpoint, bool is_post); //, const char *method, headers=None, data=None
+
+	// Default to GET request
+	bool _request(const char *endpoint) {
+		return _request(endpoint, false);
+	};
 };
 
 #endif//_CANVAS_HPP
