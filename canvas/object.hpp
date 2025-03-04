@@ -14,11 +14,13 @@ class CanvasObject {
             return attributes[key];
         }
 
-        uint32_t id() {
+        long id() {
+            if (!attributes["id"].is_number_unsigned()) return -1;
             return attributes["id"];
         }
 
         char *name() {
+            if (!attributes["name"].is_string()) return NULL;
             return strdup(attributes["name"].get<std::string>().c_str());
         }
 

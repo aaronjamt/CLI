@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 	printf("Hello, %s! Welcome to the Canvas LMS Interface (CLI).\n", canvas.get_current_user().name());
 	printf("Here are your courses:\n");
 	for (Course course : canvas.get_courses()) {
-		printf("> ID #%lu: %s\n", course.id(), course.name());
+		printf("> ID #%ld: %s\n", course.id(), course.name());
 	}
 
 	// TODO: Use canvas object
