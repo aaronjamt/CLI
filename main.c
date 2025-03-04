@@ -16,6 +16,21 @@ int main(int argc, char *argv[]) {
 		printf("> ID #%ld: %s\n", course.id(), course.name());
 	}
 
+	printf("\n");
+
+	Course course = canvas.get_courses()[0];
+	printf("Quizzes for %s:\n", course.name());
+	for (Quiz quiz : course.quizzes()) {
+		printf("> ID #%ld: %s\n", quiz.id(), quiz.name());
+	}
+
+	printf("\n");
+
+	printf("Assignments for %s:\n", course.name());
+	for (Assignment assignment : course.assignments()) {
+		printf("> ID #%ld: %s\n", assignment.id(), assignment.name());
+	}
+
 	// TODO: Use canvas object
 
 	return 0;
