@@ -1,4 +1,9 @@
 #include "canvas.hpp"
+#include "nlohmann/json.hpp"
+
+#include <iostream>
+#include <string>
+#include <cstring>
 
 //#define CURL_VERBOSE
 
@@ -27,24 +32,35 @@ Canvas::~Canvas() {
 	curl_easy_cleanup(curl);
 }
 
+// Callback function to handle the data received
+size_t write_callback(void *ptr, size_t size, size_t nmemb, void *data) {
+    size_t total_size = size * nmemb;
+    std::string *response = (std::string *)data;
+    response->append((char *)ptr, total_size);  // Append received data to the response string
+    return total_size;
+}
+
 bool Canvas::_request(const char *endpoint) {
 	char *url = (char*)malloc(strlen(base_url) + strlen(endpoint) + 1);
 	sprintf(url, "%s%s", base_url, endpoint);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
+	std::string read_buffer;
 
-	/* Perform the request, res gets the return code */
+	// Set the write function and the data buffer to store the response
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+
+	// Perform the request, res gets the return code
 	res = curl_easy_perform(curl);
-	/* Check for errors */
+	// Check for errors
 	if(res != CURLE_OK)
 		throw std::runtime_error(curl_easy_strerror(res));
 	else {
-		char *ct;
-		/* ask for the content-type */
-		res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
+		printf("Got response from the server!\n");
 
-		if((CURLE_OK == res) && ct)
-			printf("We received Content-Type: %s\n", ct);
+		auto json_response = nlohmann::json::parse(read_buffer);
+		std::cout << "First course name: " << json_response[0]["name"] << std::endl;
 	}
 
 	return 0;
