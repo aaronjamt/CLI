@@ -40,6 +40,36 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, void *data) {
     return total_size;
 }
 
+// Callback function to handle the headers received
+size_t header_callback(void *ptr, size_t size, size_t nmemb, void *data) {
+	// Check if the header starts with "LINK:", case insensitive
+	if (strncasecmp((char *)ptr, "LINK:", 5) == 0) {
+		printf("Link header!\n");
+		std::string remainder = (char *)ptr + 5;
+
+		int comma_idx;
+		do {
+			// Split at first comma
+			comma_idx = remainder.find(',');
+			printf("Remainder: %lu chars '%s', comma at %d\n", remainder.length(), remainder.c_str(), comma_idx);
+			std::string link = remainder.substr(0, comma_idx);
+			remainder = remainder.substr(comma_idx + 1);
+
+			// Split link subsection at first semicolon
+			int semicolon_idx = link.find(';');
+			std::string url = link.substr(semicolon_idx);
+			std::string rel = link.substr(semicolon_idx + 1);
+
+			// Check if the link is a "next" link
+			if (rel.find("rel=\"next\"") != std::string::npos) {
+				std::cout << "Found next link: '" << url << "'" << std::endl;
+				// TODO: Trigger request for next page
+			}
+		} while (comma_idx != -1);
+	}
+	return size * nmemb;
+}
+
 bool Canvas::_request(const char *endpoint, bool is_post) {
 	// Combine the base URL and endpoint to form the full URL
 	char *url = (char*)malloc(strlen(base_url) + strlen(endpoint) + 1);
@@ -52,6 +82,10 @@ bool Canvas::_request(const char *endpoint, bool is_post) {
 	// Set the write function and the data buffer to store the response
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+	// Set the header function and the data buffer to store the headers
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, NULL);
 
 	// Set appropriate HTTP request type
 	if (is_post)
