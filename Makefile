@@ -1,7 +1,7 @@
 all: build run
 
 build:
-	g++ -o cli.out -std=c++11 -Wall *.c canvas/*.cpp -lcurl
+	g++ -o cli.out -std=c++23 -Wall *.c canvas/*.cpp -lcurl
 
 clean:
 	rm cli.bin
