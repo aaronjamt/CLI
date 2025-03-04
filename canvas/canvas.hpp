@@ -1,7 +1,6 @@
 #ifndef _CANVAS_HPP
 #define _CANVAS_HPP
 
-#include <stdexcept>
 #include <curl/curl.h>
 
 #include "announcement.hpp"
@@ -16,6 +15,7 @@ class Canvas {
 	public:
 	Canvas(const char* base_url, const char* token);
 	~Canvas();
+	
 //	Course get_course_by_id(unsigned long course_id);
 
 	private:
