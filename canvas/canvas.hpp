@@ -4,12 +4,13 @@
 #include <stdexcept>
 #include <curl/curl.h>
 
-class Course {
-	unsigned long id;
-	char *name;
-	char *teacher;
-	float grade;
-};
+#include "announcement.hpp"
+#include "assignment.hpp"
+#include "comment.hpp"
+#include "course.hpp"
+#include "discussion.hpp"
+#include "file.hpp"
+#include "quiz.hpp"
 
 class Canvas {
 	public:
