@@ -3,7 +3,7 @@
 //#define CURL_VERBOSE
 
 // Class constructor initializes libcURL
-Canvas::Canvas(const char* token) {
+Canvas::Canvas(const char *url, const char* token) {
 	// Prepare CURL
 	curl = curl_easy_init();
 	if(curl) {
@@ -17,6 +17,8 @@ Canvas::Canvas(const char* token) {
 		throw std::runtime_error("Failed to initialize libcurl.");
 	}
 
+	base_url = url;
+
 	_request("/api/v1/courses");
 }
 
@@ -26,7 +28,10 @@ Canvas::~Canvas() {
 }
 
 bool Canvas::_request(const char *endpoint) {
-	curl_easy_setopt(curl, CURLOPT_URL, "https://canvas.tail7fcea.ts.net/api/v1/courses");
+	char *url = (char*)malloc(strlen(base_url) + strlen(endpoint) + 1);
+	sprintf(url, "%s%s", base_url, endpoint);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
 
 	/* Perform the request, res gets the return code */
 	res = curl_easy_perform(curl);

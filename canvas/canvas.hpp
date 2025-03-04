@@ -13,11 +13,12 @@ class Course {
 
 class Canvas {
 	public:
-	Canvas(const char* token);
+	Canvas(const char* base_url, const char* token);
 	~Canvas();
 //	Course get_course_by_id(unsigned long course_id);
 
 	private:
+	const char *base_url;
 	CURL *curl;
 	CURLcode res;
 
