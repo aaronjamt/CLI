@@ -10,8 +10,6 @@ class CanvasAPI {
 		CanvasAPI(const char* base_url, const char* token);
 		~CanvasAPI();
 
-	// Protected methods are accessible only to subclasses
-	protected:
 		nlohmann::json _request(const char *endpoint, bool is_post); //, const char *method, headers=None, data=None
 
 		// Default to GET request

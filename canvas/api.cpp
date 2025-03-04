@@ -40,21 +40,19 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, void *data) {
 // Callback function to handle the headers received
 size_t header_callback(void *ptr, size_t size, size_t nmemb, void *data) {
 	// Check if the header starts with "LINK:", case insensitive
-	if (0 && strncasecmp((char *)ptr, "LINK:", 5) == 0) {
-		printf("Link header!\n");
+	if (strncasecmp((char *)ptr, "LINK:", 5) == 0) {
 		std::string remainder = (char *)ptr + 5;
 
 		int comma_idx;
 		do {
 			// Split at first comma
 			comma_idx = remainder.find(',');
-			printf("Remainder: %lu chars '%s', comma at %d\n", remainder.length(), remainder.c_str(), comma_idx);
 			std::string link = remainder.substr(0, comma_idx);
 			remainder = remainder.substr(comma_idx + 1);
 
 			// Split link subsection at first semicolon
 			int semicolon_idx = link.find(';');
-			std::string url = link.substr(semicolon_idx);
+			std::string url = link.substr(0, semicolon_idx);
 			std::string rel = link.substr(semicolon_idx + 1);
 
 			// Check if the link is a "next" link
