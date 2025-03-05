@@ -11,4 +11,4 @@ run:
 	./cli.out https://canvas.tail7fcea.ts.net 83M9TV3fvCheJQMPCVcJYRYWeJ9QTu8cWKRu6m2ZZE7ryXPukNzCuEChKaDVErUC
 
 debug:
-	gdb --args ./cli.out https://canvas.tail7fcea.ts.net 83M9TV3fvCheJQMPCVcJYRYWeJ9QTu8cWKRu6m2ZZE7ryXPukNzCuEChKaDVErUC
+	gdb -ex run --args ./cli.out https://canvas.tail7fcea.ts.net 83M9TV3fvCheJQMPCVcJYRYWeJ9QTu8cWKRu6m2ZZE7ryXPukNzCuEChKaDVErUC
