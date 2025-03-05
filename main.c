@@ -9,11 +9,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	Canvas canvas(argv[1], argv[2]);
-
-	printf("Hello, %s! Welcome to the Canvas LMS Interface (CLI).\n", canvas.get_current_user().name());
+	printf("\x1b[30;47mHello, %s! Welcome to the Canvas LMS Interface (CLI).\x1b[K\x1b[0m\n", canvas.get_current_user().name());
 	printf("Here are your courses:\n");
 	for (Course course : canvas.get_courses()) {
-		printf("> ID #%ld: %s\n", course.id(), course.name());
+		printf("> ID #%ld: %s", course.id(), course.name());
+		printf(" | Grade: %.2f%%\n", course.get_final_score());
 	}
 
 	printf("\n");

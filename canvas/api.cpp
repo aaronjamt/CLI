@@ -57,7 +57,6 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, void *data) {
 
 			// Check if the link is a "next" link
 			if (rel.find("rel=\"next\"") != std::string::npos) {
-				printf("Found next link: %s", url.c_str());
 				// TODO: Trigger request for next page
 			}
 		} while (comma_idx != -1);
@@ -94,7 +93,6 @@ nlohmann::json CanvasAPI::_request(const char *endpoint, bool is_post) {
 	if(res != CURLE_OK)
 		throw std::runtime_error(curl_easy_strerror(res));
 	else {
-		printf("Got response from the server!\n");
 
 		return nlohmann::json::parse(response);
 	}
