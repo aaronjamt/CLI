@@ -15,7 +15,7 @@ TOKEN ?= 83M9TV3fvCheJQMPCVcJYRYWeJ9QTu8cWKRu6m2ZZE7ryXPukNzCuEChKaDVErUC
 BASE_URL ?= https://canvas.tail7fcea.ts.net
 
 # When running make with no arguments, build and run
-all: build
+run: build
 	./$(EXC_NAME) $(BASE_URL) $(TOKEN)
 
 # When running make debug, build and run with GDB
