@@ -66,7 +66,7 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
 	return size * nmemb;
 }
 
-nlohmann::json CanvasAPI::_requestURL(std::string url, bool is_post) {
+nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data) {
 	// Set the URL to request
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
@@ -85,10 +85,14 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, bool is_post) {
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &next_page);
 
 	// Set appropriate HTTP request type
-	if (is_post)
-		curl_easy_setopt(curl, CURLOPT_POST, 1);
-	else
+	if (post_data == NULL)
+		// GET request
 		curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
+	else {
+		// POST request
+		curl_easy_setopt(curl, CURLOPT_POST, 1);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.dump().c_str());
+	}
 
 	// Perform the request, res gets the return code
 	res = curl_easy_perform(curl);

@@ -10,10 +10,10 @@ class CanvasAPI {
 		CanvasAPI(const char* base_url, const char* token);
 		~CanvasAPI();
 
-		nlohmann::json _requestURL(std::string url, bool is_post); //, const char *method, headers=None, data=None
+		nlohmann::json _requestURL(std::string url, nlohmann::json post_data);
 
 		// Combine the endpoint with the base URL
-		nlohmann::json _request(const char *endpoint, bool is_post) {
+		nlohmann::json _request(const char *endpoint, nlohmann::json post_data) {
 			// The URL should always be "{base_url}/api/v1/{endpoint}"
 			std::string url = base_url;
 			// Ensure the URL ends with a slash, before adding the "api/v1/" part
@@ -27,12 +27,12 @@ class CanvasAPI {
 			} else {
 				url += endpoint + strlen("api/v1") + std::string(endpoint).find("api/v1");
 			}
-			return _requestURL(url, is_post);
+			return _requestURL(url, post_data);
 		};
 
-		// Default to GET request
+		// GET request has no data
 		nlohmann::json _request(const char *endpoint) {
-			nlohmann::json result = _request(endpoint, false);
+			nlohmann::json result = _request(endpoint, NULL);
 			return result;
 		};
 
