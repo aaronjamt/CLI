@@ -115,7 +115,7 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 
 		nlohmann::json result = nlohmann::json::parse(response);
 		if (!next_page.empty()) {
-			nlohmann::json next_result = _requestURL(next_page, false);
+			nlohmann::json next_result = _requestURL(next_page, post_data);
 
 			// Merge the two JSON objects
 			if (result.is_array() && next_result.is_array()) {
