@@ -102,6 +102,17 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 	if(res != CURLE_OK)
 		throw std::runtime_error(curl_easy_strerror(res));
 	else {
+		long response_code;
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+		if (response_code != 200)
+			throw std::runtime_error("Received HTTP response code " + std::to_string(response_code) + " for URL " + url);
+
+		// Check for content-type
+		char *content_type;
+		curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
+		if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0)
+			throw std::runtime_error("Received invalid content type: " + std::string(content_type));
+
 		nlohmann::json result = nlohmann::json::parse(response);
 		if (!next_page.empty()) {
 			nlohmann::json next_result = _requestURL(next_page, false);
