@@ -4,6 +4,7 @@
 #include "assignment.hpp"
 #include "object.hpp"
 #include "quiz.hpp"
+#include <iostream>
 
 class Course : public CanvasObject {
     public:
@@ -13,12 +14,12 @@ class Course : public CanvasObject {
 	}
 
         std::vector<Assignment> assignments() {
-            std::vector<Assignment> quizzes;
+            std::vector<Assignment> assignments;
             std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/assignments";
-            for (nlohmann::json quiz : api->_request(endpoint.c_str())) {
-                quizzes.push_back(Assignment(api, quiz));
+            for (nlohmann::json assignment : api->_request(endpoint.c_str())) {
+                assignments.push_back(Assignment(api, assignment));
             }
-            return quizzes;
+            return assignments;
         }
 
         std::vector<Quiz> quizzes() {
