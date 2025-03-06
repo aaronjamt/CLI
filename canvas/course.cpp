@@ -1,4 +1,4 @@
-#include "canvas.hpp"
+#include "course.hpp"
 
 double Course::get_final_score() {
     std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/enrollments";

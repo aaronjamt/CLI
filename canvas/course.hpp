@@ -4,7 +4,6 @@
 #include "assignment.hpp"
 #include "object.hpp"
 #include "quiz.hpp"
-#include <iostream>
 
 class Course : public CanvasObject {
     public:

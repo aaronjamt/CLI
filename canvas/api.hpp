@@ -4,8 +4,6 @@
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
 
-#include <iostream>
-
 class CanvasAPI {
 	// Constructor and destructor are public
 	public:
