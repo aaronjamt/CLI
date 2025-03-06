@@ -58,7 +58,9 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
 			// Check if the link is a "next" link
 			if (rel.find("rel=\"next\"") != std::string::npos) {
 				// If we found the next page, extract the URL and return early
-				*data = url.substr(url.find('<') + 1, url.find('>'));
+				int start = url.find('<') + 1;
+				int length = url.find('>') - start;
+				*data = url.substr(start, length);
 				return size * nmemb;
 			}
 		} while (comma_idx != -1);
