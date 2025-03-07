@@ -16,11 +16,11 @@ BASE_URL ?= https://canvas.tail7fcea.ts.net
 
 # When running make with no arguments, build and run
 run: build
-	./$(EXC_NAME) $(BASE_URL) $(TOKEN)
+	@./$(EXC_NAME) $(BASE_URL) $(TOKEN)
 
 # When running make debug, build and run with GDB
 debug: build
-	gdb -ex run --args ./$(EXC_NAME) $(BASE_URL) $(TOKEN)
+	@gdb -ex run --args ./$(EXC_NAME) $(BASE_URL) $(TOKEN)
 
 # When running make build, just build
 build:$(EXC_NAME)
