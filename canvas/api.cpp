@@ -93,7 +93,12 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 	else {
 		// POST request
 		curl_easy_setopt(curl, CURLOPT_POST, 1);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.dump().c_str());
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strdup(post_data.dump().c_str()));
+
+		// Set the content type to JSON
+		struct curl_slist *headers = NULL;
+		headers = curl_slist_append(NULL, "Content-Type: application/json");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	}
 
 	// Perform the request, res gets the return code

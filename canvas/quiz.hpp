@@ -8,7 +8,8 @@ class Quiz : public CanvasObject {
         Quiz(CanvasAPI* canvas, CanvasObject *course, nlohmann::json attributes) : CanvasObject(canvas, attributes), course(course) {}
 
         char *name();
-        
+        bool validate_access_code(char* code);
+
     private:
         CanvasObject *course;
 };
