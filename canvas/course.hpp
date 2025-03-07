@@ -25,7 +25,7 @@ class Course : public CanvasObject {
             std::vector<Quiz> quizzes;
             std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";
             for (nlohmann::json quiz : api->_request(endpoint.c_str())) {
-                quizzes.push_back(Quiz(api, quiz));
+                quizzes.push_back(Quiz(api, this, quiz));
             }
             return quizzes;
         }
