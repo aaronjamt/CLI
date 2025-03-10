@@ -9,27 +9,14 @@ class Course : public CanvasObject {
     public:
         using CanvasObject::CanvasObject;
         Course(CanvasAPI* canvas, nlohmann::json attributes) : CanvasObject(canvas, attributes) {
-		get_final_score();
-	}
+		    // get_final_score();
 
-        std::vector<Assignment> assignments() {
-            std::vector<Assignment> assignments;
-            std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/assignments";
-            for (nlohmann::json assignment : api->_request(endpoint.c_str())) {
-                assignments.push_back(Assignment(api, assignment));
-            }
-            return assignments;
-        }
+	    }
 
-        std::vector<Quiz> quizzes() {
-            std::vector<Quiz> quizzes;
-            std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";
-            for (nlohmann::json quiz : api->_request(endpoint.c_str())) {
-                quizzes.push_back(Quiz(api, this, quiz));
-            }
-            return quizzes;
-        }
+        std::vector<Assignment> assignments();
+        std::vector<Quiz> quizzes();
 
+        double get_current_grade();
         double get_final_score();
 };
 
