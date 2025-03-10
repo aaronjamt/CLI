@@ -14,11 +14,11 @@ bool Quiz::validate_access_code(char* code) {
         "/validate_access_code";
     nlohmann::json data;
     data["access_code"] = code;
-    nlohmann::json response = api->_request(endpoint.c_str(), data);
+    std::optional<nlohmann::json> response = api->_request(endpoint.c_str(), data);
 
     // The response should be a boolean
-    if (response.is_boolean()) {
-        return response.get<bool>();
+    if (response && response->is_boolean()) {
+        return response->get<bool>();
     }
     return false;
 }

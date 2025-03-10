@@ -4,7 +4,7 @@ std::vector<Assignment> Course::assignments() {
     std::vector<Assignment> assignments;
     std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/assignments?include[]=submission";
     std::optional<nlohmann::json> response = api->_request(endpoint.c_str());
-    if (!response.has_value()) {
+    if (!response) {
         return {};
     }
 
@@ -18,7 +18,7 @@ std::vector<Quiz> Course::quizzes() {
     std::vector<Quiz> quizzes;
     std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";
     std::optional<nlohmann::json> response = api->_request(endpoint.c_str());
-    if (!response.has_value()) {
+    if (!response) {
         return {};
     }
 

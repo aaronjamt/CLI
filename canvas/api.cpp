@@ -140,15 +140,15 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
 		nlohmann::json result = nlohmann::json::parse(response);
 		if (!next_page.empty()) {
 			std::optional<nlohmann::json> next_result = _requestURL(next_page, post_data);
-			if (next_result.has_value()) {
+			if (next_result) {
 				// Merge the two JSON objects
-				if (result.is_array() && next_result.value().is_array()) {
-					result.insert(result.end(), next_result.value().begin(), next_result.value().end());
-				} else if (result.is_object() && next_result.value().is_object()) {
+				if (result.is_array() && next_result->is_array()) {
+					result.insert(result.end(), next_result->begin(), next_result->end());
+				} else if (result.is_object() && next_result->is_object()) {
 					result.update(next_result.value());
 				} else {
 #ifdef HTTP_VERBOSE
-					printf("Cannot merge JSON objects of types %s and %s.", result.type_name(), next_result.value().type_name());
+					printf("Cannot merge JSON objects of types %s and %s.", result.type_name(), next_result->.type_name());
 #endif
 					return std::nullopt;
 				}
