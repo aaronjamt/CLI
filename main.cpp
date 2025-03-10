@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	printf("Here are your courses:\n");
 	for (Course course : canvas.get_courses()) {
 		printf("> ID #%ld: %s", course.id(), course.name());
-		printf(" | Grade: %.2f%%\n", course.get_final_score());
+		printf(" | Grade: %.2f%%\n", course.get_current_grade());
 	}
 
 	printf("\n");
