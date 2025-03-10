@@ -68,7 +68,7 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
 	return size * nmemb;
 }
 
-nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data) {
+std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::json post_data) {
 	// Set the URL to request
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
@@ -104,31 +104,41 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 	// Perform the request, res gets the return code
 	res = curl_easy_perform(curl);
 	// Check for errors
-	if(res != CURLE_OK)
-		throw std::runtime_error(curl_easy_strerror(res));
-	else {
+	if(res != CURLE_OK) {
+		printf("Error making HTTP %s request to %s: %s\n", 
+			post_data == NULL ? "GET" : "POST",
+			url.c_str(),
+			curl_easy_strerror(res));
+		return std::nullopt;
+	} else {
 		long response_code;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-		if (response_code != 200)
-			throw std::runtime_error("Received HTTP response code " + std::to_string(response_code) + " for URL " + url);
+		if (response_code != 200) {
+			printf("Received HTTP response code %ld for URL %s.", response_code, url.c_str());
+			return std::nullopt;
+		}
 
 		// Check for content-type
 		char *content_type;
 		curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
-		if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0)
-			throw std::runtime_error("Received invalid content type: " + std::string(content_type));
+		if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0) {
+			printf("Received invalid content type: %s for URL %s.", content_type, url.c_str());
+			return std::nullopt;
+		}
 
 		nlohmann::json result = nlohmann::json::parse(response);
 		if (!next_page.empty()) {
-			nlohmann::json next_result = _requestURL(next_page, post_data);
-
-			// Merge the two JSON objects
-			if (result.is_array() && next_result.is_array()) {
-				result.insert(result.end(), next_result.begin(), next_result.end());
-			} else if (result.is_object() && next_result.is_object()) {
-				result.update(next_result);
-			} else {
-				throw std::runtime_error("Cannot merge JSON objects of types " + std::string(result.type_name()) + " and " + std::string(next_result.type_name()));
+			std::optional<nlohmann::json> next_result = _requestURL(next_page, post_data);
+			if (next_result.has_value()) {
+				// Merge the two JSON objects
+				if (result.is_array() && next_result.value().is_array()) {
+					result.insert(result.end(), next_result.value().begin(), next_result.value().end());
+				} else if (result.is_object() && next_result.value().is_object()) {
+					result.update(next_result.value());
+				} else {
+					printf("Cannot merge JSON objects of types %s and %s.", result.type_name(), next_result.value().type_name());
+					return std::nullopt;
+				}
 			}
 		}
 		return result;

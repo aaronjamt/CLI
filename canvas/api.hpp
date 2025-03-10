@@ -3,6 +3,7 @@
 
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
+#include <optional>
 
 class CanvasAPI {
 	// Constructor and destructor are public
@@ -10,10 +11,10 @@ class CanvasAPI {
 		CanvasAPI(const char* base_url, const char* token);
 		~CanvasAPI();
 
-		nlohmann::json _requestURL(std::string url, nlohmann::json post_data);
+		std::optional<nlohmann::json> _requestURL(std::string url, nlohmann::json post_data);
 
 		// Combine the endpoint with the base URL
-		nlohmann::json _request(const char *endpoint, nlohmann::json post_data) {
+		std::optional<nlohmann::json> _request(const char *endpoint, nlohmann::json post_data) {
 			// The URL should always be "{base_url}/api/v1/{endpoint}"
 			std::string url = base_url;
 			// Ensure the URL ends with a slash, before adding the "api/v1/" part
@@ -31,9 +32,8 @@ class CanvasAPI {
 		};
 
 		// GET request has no data
-		nlohmann::json _request(const char *endpoint) {
-			nlohmann::json result = _request(endpoint, NULL);
-			return result;
+		std::optional<nlohmann::json> _request(const char *endpoint) {
+			return _request(endpoint, NULL);
 		};
 
 	// Private members are only accessible to this class
