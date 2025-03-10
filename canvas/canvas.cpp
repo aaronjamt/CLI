@@ -1,12 +1,17 @@
 #include "canvas.hpp"
+#include "api.hpp"
 
 std::vector<Course> Canvas::get_courses() {
-	nlohmann::json json_response = _request("/api/v1/courses?include[]=total_scores");
-	std::vector<Course> courses;
-	for (nlohmann::json course : json_response) {
-		courses.push_back(Course(this, course));
+	try {
+		nlohmann::json json_response = _request("/api/v1/courses?include[]=total_scores");
+		std::vector<Course> courses;
+		for (nlohmann::json course : json_response) {
+			courses.push_back(Course(this, course));
+		}
+		return courses;
+	} catch (HTTPError) {
+		return {};
 	}
-    return courses;
 }
 
 Course Canvas::get_course_by_id(unsigned long course_id) {

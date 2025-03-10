@@ -1,21 +1,29 @@
 #include "course.hpp"
 
 std::vector<Assignment> Course::assignments() {
-    std::vector<Assignment> assignments;
-    std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/assignments";
-    for (nlohmann::json assignment : api->_request(endpoint.c_str())) {
-        assignments.push_back(Assignment(api, assignment));
-    }
-    return assignments;
+    try {
+        std::vector<Assignment> assignments;
+        std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/assignments";
+        for (nlohmann::json assignment : api->_request(endpoint.c_str())) {
+            assignments.push_back(Assignment(api, assignment));
+        }
+        return assignments;
+	} catch (HTTPError) {
+		return {};
+	}
 }
 
 std::vector<Quiz> Course::quizzes() {
-    std::vector<Quiz> quizzes;
-    std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";
-    for (nlohmann::json quiz : api->_request(endpoint.c_str())) {
-        quizzes.push_back(Quiz(api, this, quiz));
-    }
-    return quizzes;
+    try {
+        std::vector<Quiz> quizzes;
+        std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";
+        for (nlohmann::json quiz : api->_request(endpoint.c_str())) {
+            quizzes.push_back(Quiz(api, this, quiz));
+        }
+        return quizzes;
+	} catch (HTTPError) {
+		return {};
+	}
 }
 
 double Course::get_current_grade() {
