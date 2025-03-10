@@ -4,7 +4,12 @@
 #include <string>
 #include <cstring>
 
+// Uncomment to enable libcURL verbose output
+// This will print all HTTP requests and responses to the console
 //#define CURL_VERBOSE
+
+// Uncomment to enable logging HTTP errors
+//#define HTTP_VERBOSE
 
 // Class constructor initializes libcURL
 CanvasAPI::CanvasAPI(const char *url, const char* token) {
@@ -105,16 +110,20 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
 	res = curl_easy_perform(curl);
 	// Check for errors
 	if(res != CURLE_OK) {
+#ifdef HTTP_VERBOSE
 		printf("Error making HTTP %s request to %s: %s\n", 
 			post_data == NULL ? "GET" : "POST",
 			url.c_str(),
 			curl_easy_strerror(res));
+#endif
 		return std::nullopt;
 	} else {
 		long response_code;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 		if (response_code != 200) {
+#ifdef HTTP_VERBOSE
 			printf("Received HTTP response code %ld for URL %s.", response_code, url.c_str());
+#endif
 			return std::nullopt;
 		}
 
@@ -122,7 +131,9 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
 		char *content_type;
 		curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
 		if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0) {
+#ifdef HTTP_VERBOSE
 			printf("Received invalid content type: %s for URL %s.", content_type, url.c_str());
+#endif
 			return std::nullopt;
 		}
 
@@ -136,7 +147,9 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
 				} else if (result.is_object() && next_result.value().is_object()) {
 					result.update(next_result.value());
 				} else {
+#ifdef HTTP_VERBOSE
 					printf("Cannot merge JSON objects of types %s and %s.", result.type_name(), next_result.value().type_name());
+#endif
 					return std::nullopt;
 				}
 			}
