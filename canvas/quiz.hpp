@@ -5,13 +5,13 @@
 
 class Quiz : public CanvasObject {
     public:
-        Quiz(CanvasAPI* canvas, nlohmann::json attributes) : CanvasObject(canvas, attributes) {}
+        Quiz(CanvasAPI* canvas, CanvasObject *course, nlohmann::json attributes) : CanvasObject(canvas, attributes), course(course) {}
 
-        // Quizzes use the "title" attribute for their name
-        char *name() {
-            if (!attributes["title"].is_string()) return NULL;
-            return strdup(attributes["title"].get<std::string>().c_str());
-        }
+        char *name();
+        bool validate_access_code(char* code);
+
+    private:
+        CanvasObject *course;
 };
 
 #endif//_QUIZ_HPP

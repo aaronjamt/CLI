@@ -58,7 +58,9 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
 			// Check if the link is a "next" link
 			if (rel.find("rel=\"next\"") != std::string::npos) {
 				// If we found the next page, extract the URL and return early
-				*data = url.substr(url.find('<') + 1, url.find('>'));
+				int start = url.find('<') + 1;
+				int length = url.find('>') - start;
+				*data = url.substr(start, length);
 				return size * nmemb;
 			}
 		} while (comma_idx != -1);
@@ -91,7 +93,12 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 	else {
 		// POST request
 		curl_easy_setopt(curl, CURLOPT_POST, 1);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.dump().c_str());
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strdup(post_data.dump().c_str()));
+
+		// Set the content type to JSON
+		struct curl_slist *headers = NULL;
+		headers = curl_slist_append(NULL, "Content-Type: application/json");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	}
 
 	// Perform the request, res gets the return code
@@ -100,9 +107,20 @@ nlohmann::json CanvasAPI::_requestURL(std::string url, nlohmann::json post_data)
 	if(res != CURLE_OK)
 		throw std::runtime_error(curl_easy_strerror(res));
 	else {
+		long response_code;
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+		if (response_code != 200)
+			throw std::runtime_error("Received HTTP response code " + std::to_string(response_code) + " for URL " + url);
+
+		// Check for content-type
+		char *content_type;
+		curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
+		if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0)
+			throw std::runtime_error("Received invalid content type: " + std::string(content_type));
+
 		nlohmann::json result = nlohmann::json::parse(response);
 		if (!next_page.empty()) {
-			nlohmann::json next_result = _requestURL(next_page, false);
+			nlohmann::json next_result = _requestURL(next_page, post_data);
 
 			// Merge the two JSON objects
 			if (result.is_array() && next_result.is_array()) {
