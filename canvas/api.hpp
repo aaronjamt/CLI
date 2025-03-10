@@ -2,10 +2,7 @@
 #define _API_HPP
 
 #include <curl/curl.h>
-#include <stdexcept>
 #include "nlohmann/json.hpp"
-
-class HTTPError : std::runtime_error {};
 
 class CanvasAPI {
 	// Constructor and destructor are public

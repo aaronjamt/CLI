@@ -1,5 +1,6 @@
 #include "canvas.hpp"
 #include "api.hpp"
+#include <stdexcept>
 
 std::vector<Course> Canvas::get_courses() {
 	try {
@@ -9,7 +10,7 @@ std::vector<Course> Canvas::get_courses() {
 			courses.push_back(Course(this, course));
 		}
 		return courses;
-	} catch (HTTPError) {
+	} catch (std::runtime_error) {
 		return {};
 	}
 }

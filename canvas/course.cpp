@@ -8,7 +8,7 @@ std::vector<Assignment> Course::assignments() {
             assignments.push_back(Assignment(api, assignment));
         }
         return assignments;
-	} catch (HTTPError) {
+	} catch (std::runtime_error) {
 		return {};
 	}
 }
@@ -21,7 +21,7 @@ std::vector<Quiz> Course::quizzes() {
             quizzes.push_back(Quiz(api, this, quiz));
         }
         return quizzes;
-	} catch (HTTPError) {
+	} catch (std::runtime_error) {
 		return {};
 	}
 }
