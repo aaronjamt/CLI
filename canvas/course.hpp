@@ -9,9 +9,9 @@ class Course : public CanvasObject {
     public:
         using CanvasObject::CanvasObject;
         Course(CanvasAPI* canvas, nlohmann::json attributes) : CanvasObject(canvas, attributes) {
-		    // get_final_score();
+            // get_final_score();
 
-	    }
+        }
 
         std::vector<Assignment> assignments();
         std::vector<Quiz> quizzes();
