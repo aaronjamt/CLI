@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string>
 #include "canvas/canvas.hpp"
+#include "canvas/submission.hpp"
 
 #define UP_ARROW 65
 #define DOWN_ARROW 66
@@ -97,6 +98,15 @@ int main(int argc, char *argv[]) {
     printf("Assignments for %s:\n", selected_course.name());
     for (Assignment assignment : selected_course.assignments()) {
         printf("> ID #%ld: %s\n", assignment.id(), assignment.name());
+
+        if (assignment.submission()) {
+            Submission submission = assignment.submission().value();
+            if (submission.score())
+                printf(" | Grade: %.2f%%\n", submission.score().value());
+            else
+                printf("\n");
+        } else
+            printf("\n");
     }
 
     // TODO: Use canvas object
