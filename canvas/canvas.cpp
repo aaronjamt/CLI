@@ -7,6 +7,9 @@ std::vector<Course> Canvas::get_courses() {
 
     std::vector<Course> courses;
     for (nlohmann::json course : json_response.value()) {
+        // Skip courses that are unavailable
+        if (course.contains("access_restricted_by_date") && course["access_restricted_by_date"]) continue;
+
         courses.push_back(Course(this, course));
     }
     return courses;
