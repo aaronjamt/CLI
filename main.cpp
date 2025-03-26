@@ -33,9 +33,9 @@ int menu(int num_items, const char *items[]) {
     while (1) {
         printf("\e[1;1H\e[2J");
         for (int i = 0; i < num_items; i++) {
-            if (selected_item == i) printf("\x1b[30;47m");
+            if (selected_item == i) printf("\x1b[39;47m");
             printf("%s\n", items[i]);
-            if (selected_item == i) printf("\x1b[37;40m");
+            if (selected_item == i) printf("\x1b[37;49m");
         }
         int input = get_key_press();
         if (input == UP_ARROW) {
