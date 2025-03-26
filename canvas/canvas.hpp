@@ -2,7 +2,6 @@
 #define _CANVAS_HPP
 
 #include "api.hpp"
-#include "announcement.hpp"
 #include "assignment.hpp"
 #include "comment.hpp"
 #include "course.hpp"

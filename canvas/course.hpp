@@ -2,6 +2,7 @@
 #define _COURSE_HPP
 
 #include "assignment.hpp"
+#include "discussion.hpp"
 #include "object.hpp"
 #include "quiz.hpp"
 
@@ -13,6 +14,7 @@ class Course : public CanvasObject {
 
         }
 
+        std::vector<Discussion> announcements();
         std::vector<Assignment> assignments();
         std::vector<Quiz> quizzes();
 

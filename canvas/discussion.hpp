@@ -6,6 +6,8 @@
 class Discussion : public CanvasObject {
     public:
         Discussion(CanvasAPI* canvas, nlohmann::json attributes) : CanvasObject(canvas, attributes) {}
+
+        char *name();
 };
 
 #endif//_DISCUSSION_HPP

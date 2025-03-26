@@ -1,4 +1,19 @@
 #include "course.hpp"
+#include "discussion.hpp"
+
+std::vector<Discussion> Course::announcements() {
+    std::vector<Discussion> announcements;
+    std::string endpoint = "/api/v1/announcements?context_codes[]=course_" + std::to_string(id());
+    std::optional<nlohmann::json> response = api->_request(endpoint.c_str());
+    if (!response) {
+        return {};
+    }
+
+    for (nlohmann::json announcement : response.value()) {
+        announcements.push_back(Discussion(api, announcement));
+    }
+    return announcements;
+}
 
 std::vector<Assignment> Course::assignments() {
     std::vector<Assignment> assignments;
