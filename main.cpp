@@ -34,7 +34,7 @@ int menu(int num_items, const char *items[]) {
         printf("\e[1;1H\e[2J");
         for (int i = 0; i < num_items; i++) {
             if (selected_item == i) printf("\x1b[30;47m");
-            printf("%s", items[i]);
+            printf("%s\n", items[i]);
             if (selected_item == i) printf("\x1b[37;40m");
         }
         int input = get_key_press();
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
         } else {
             realGradeFuckingForRealThisTime = "N/A";
         }
-        formatted_courses.push_back("> ID #" + std::to_string(course.id()) + ": " + course.name() + " | Grade: " + realGradeFuckingForRealThisTime + "\n");
+        formatted_courses.push_back("> ID #" + std::to_string(course.id()) + ": " + course.name() + " | Grade: " + realGradeFuckingForRealThisTime);
     }
 
     for (const std::string &to_c : formatted_courses) {
@@ -87,27 +87,67 @@ int main(int argc, char *argv[]) {
         printf("Selected course: ID #%ld: %s | Grade: N/A\n", selected_course.id(), selected_course.name());
     }
 
-    Course course = canvas.get_courses()[0];
-    printf("Quizzes for %s:\n", selected_course.name());
-    for (Quiz quiz : selected_course.quizzes()) {
-        printf("> ID #%ld: %s\n", quiz.id(), quiz.name());
+    printf("\n");
+    srand(time(NULL));
+    const char* objectList[100] = {
+        "Announcements",
+        "Quizzes",
+        "Assignments",
+        "Discussions",
+        "I'm Feeling Lucky"
+    };
+
+    int selected_object = menu(5, objectList);
+    if (selected_object == 4) {
+        printf("Randomly selecting an object...\n");
+        sleep(3);
+        selected_object = rand() % 4;
+    }
+    switch (selected_object) {
+        case 0:
+            printf("\e[1;1H\e[2J");
+            printf("\nAnnouncements for %s:\n", selected_course.name());
+            break;
+        case 1:
+            printf("\e[1;1H\e[2J");
+            printf("\nQuizzes for %s:\n", selected_course.name());
+            for (Quiz quiz : selected_course.quizzes()) {
+                printf("> ID #%ld: %s\n", quiz.id(), quiz.name());
+        }
+            break;
+        case 2:
+            printf("\e[1;1H\e[2J");
+            printf("\nAssignments for %s:\n", selected_course.name());
+            for (Assignment assignment : selected_course.assignments()) {
+                printf("> ID #%ld: %s", assignment.id(), assignment.name());
+            
+                // TODO: add due date function
+
+                // if (assignment.due_date())
+                //     printf("\nDue date: %s\n", assignment.due_date().value().c_str());
+                // else
+                //     printf("Due date: N/A\n");
+    
+                if (assignment.submission()) {
+                    Submission submission = assignment.submission().value();
+                    if (submission.score())
+                        printf(" | Grade: %.2f%%\n", submission.score().value());
+                    else
+                        printf(" | Grade: N/A\n");
+                } else
+                    printf("\n");
+            }
+            break;
+        case 3:
+            printf("Discussions for %s:\n", selected_course.name());
+            for (Discussion discussion : selected_course.discussions()) {
+                printf("Posted by %s\n", discussion.poster(), discussion.name());
+            }
+            break;
+
     }
 
     printf("\n");
-
-    printf("Assignments for %s:\n", selected_course.name());
-    for (Assignment assignment : selected_course.assignments()) {
-        printf("> ID #%ld: %s\n", assignment.id(), assignment.name());
-
-        if (assignment.submission()) {
-            Submission submission = assignment.submission().value();
-            if (submission.score())
-                printf(" | Grade: %.2f%%\n", submission.score().value());
-            else
-                printf("\n");
-        } else
-            printf("\n");
-    }
 
     // TODO: Use canvas object
     return 0;
