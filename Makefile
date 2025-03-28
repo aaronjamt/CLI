@@ -35,7 +35,7 @@ OBJ = $(patsubst %, %, $(OBJ_FILES))
 $(EXC_NAME):$(OBJ)
 	$(CC) $(OBJ) -o $(EXC_NAME) $(CFLAGS)
 
-%.o:%.cpp
+%.o:%.cpp %.hpp
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 .PHONY: clean
