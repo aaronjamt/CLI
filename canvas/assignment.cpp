@@ -1,4 +1,5 @@
 #include "assignment.hpp"
+#include "iso8601.hpp"
 #include <optional>
 
 std::optional<Submission> Assignment::submission() {
@@ -17,17 +18,17 @@ std::optional<double> Assignment::value() {
 char* Assignment::posted_at() {
     if (attributes["created_at"].is_string()) {
         std::string when = attributes["created_at"].get<std::string>();
-        // TODO: ISO 8601 conversion
+        when = ISO8601::format_to_human(when);
         return strdup(when.c_str());
     }
-    return (char*)"(unknown posted_at)";
+    return (char*)"";
 }
 
 char* Assignment::due_date() {
     if (attributes["due_at"].is_string()) {
         std::string when = attributes["due_at"].get<std::string>();
-        // TODO: ISO 8601 conversion
+        when = ISO8601::format_to_human(when);
         return strdup(when.c_str());
     }
-    return (char*)"(unknown due_date)";
+    return (char*)"";
 }

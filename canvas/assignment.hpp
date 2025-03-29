@@ -15,6 +15,9 @@ class Assignment : public CanvasObject {
         // How many points is this assignment worth?
         std::optional<double> value();
 
+        char* posted_at();
+        char* due_date();
+
     private:
         CanvasObject *course;
 };
