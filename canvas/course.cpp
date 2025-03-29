@@ -29,6 +29,20 @@ std::vector<Assignment> Course::assignments() {
     return assignments;
 }
 
+std::vector<Discussion> Course::discussions() {
+    std::vector<Discussion> discussions;
+    std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/discussion_topics";
+    std::optional<nlohmann::json> response = api->_request(endpoint.c_str());
+    if (!response) {
+        return {};
+    }
+
+    for (nlohmann::json assignment : response.value()) {
+        discussions.push_back(Discussion(api, assignment));
+    }
+    return discussions;
+}
+
 std::vector<Quiz> Course::quizzes() {
     std::vector<Quiz> quizzes;
     std::string endpoint = "/api/v1/courses/" + std::to_string(id()) + "/quizzes";

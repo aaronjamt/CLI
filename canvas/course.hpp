@@ -15,6 +15,7 @@ class Course : public CanvasObject {
         }
 
         std::vector<Discussion> announcements();
+        std::vector<Discussion> discussions();
         std::vector<Assignment> assignments();
         std::vector<Quiz> quizzes();
 
