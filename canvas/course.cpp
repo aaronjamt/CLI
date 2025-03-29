@@ -57,6 +57,17 @@ std::vector<Quiz> Course::quizzes() {
     return quizzes;
 }
 
+std::optional<Assignment> Course::assignment(std::string id) {
+    std::string endpoint = "/api/v1/courses/" + std::to_string(this->id()) + "/assignments/" + id;
+    std::optional<nlohmann::json> response = api->_request(endpoint.c_str());
+    if (!response) {
+        return {};
+    }
+
+    return Assignment(api, this, response.value());
+}
+
+
 std::optional<double> Course::get_current_grade() {
     if (!attributes.contains("enrollments")) {
         return std::nullopt;

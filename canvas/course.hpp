@@ -19,6 +19,8 @@ class Course : public CanvasObject {
         std::vector<Assignment> assignments();
         std::vector<Quiz> quizzes();
 
+        std::optional<Assignment> assignment(std::string id);
+
         std::optional<double> get_current_grade();
         std::optional<double> get_final_score();
 };
