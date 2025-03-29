@@ -2,12 +2,7 @@
 #define _CANVAS_HPP
 
 #include "api.hpp"
-#include "assignment.hpp"
-#include "comment.hpp"
 #include "course.hpp"
-#include "discussion.hpp"
-#include "file.hpp"
-#include "quiz.hpp"
 #include "user.hpp"
 
 #include <optional>
