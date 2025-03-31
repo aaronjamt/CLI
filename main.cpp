@@ -121,9 +121,10 @@ int main(int argc, char *argv[]) {
 
                 for (Discussion announcement : selected_course.announcements()) {
                     printf("> ID #%ld: '%s' posted by %s at %s", announcement.id(), announcement.name(), announcement.poster_name(), announcement.posted_at());
-                    if (announcement.assignment()) {
-                        printf(" | Due at: %s", announcement.assignment()->due_date());
-                    }
+                    // TODO: Not working yet
+                    // if (announcement.assignment()) {
+                    //     printf(" | Due at: %s", announcement.assignment()->due_date());
+                    // }
                     printf("  > %s\n", announcement.body());
                 }
                 break;
@@ -269,9 +270,10 @@ int main(int argc, char *argv[]) {
                 printf("Discussions for %s:\n", selected_course.name());
                 for (Discussion discussion : selected_course.discussions()) {
                     printf("> ID #%ld: '%s' posted by %s at %s", discussion.id(), discussion.name(), discussion.poster_name(), discussion.posted_at());
-                    if (discussion.assignment()) {
-                        printf(" | Due at: %s", discussion.assignment()->due_date());
-                    }
+                    // TODO: Not working yet
+                    // if (discussion.assignment()) {
+                    //     printf(" | Due at: %s", discussion.assignment()->due_date());
+                    // }
                     printf("  > %s\n", discussion.body());
                 }
                 break;
