@@ -1,15 +1,17 @@
 #include "api.hpp"
 #include "nlohmann/json.hpp"
+#include "andsonye/multipart_parser.h"
 
+#include <iostream>
 #include <string>
 #include <cstring>
 
 // Uncomment to enable libcURL verbose output
 // This will print all HTTP requests and responses to the console
-//#define CURL_VERBOSE
+// #define CURL_VERBOSE
 
 // Uncomment to enable logging HTTP errors
-//#define HTTP_VERBOSE
+#define HTTP_VERBOSE
 
 // Class constructor initializes libcURL
 CanvasAPI::CanvasAPI(const char *url, const char* token) {
@@ -20,7 +22,6 @@ CanvasAPI::CanvasAPI(const char *url, const char* token) {
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 #endif
         // Provide access token for authorization
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
         curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, token);
     } else {
         throw std::runtime_error("Failed to initialize libcurl.");
@@ -69,13 +70,22 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
                 return size * nmemb;
             }
         } while (comma_idx != -1);
+    } else if (data->empty()) {
+        // Otherwise, if we haven't gotten a next page, check if
+        // the header starts with "LOCATION:", case insensitive
+        if (strncasecmp((char *)ptr, "LOCATION:", 9) == 0) {
+            // If we found the location, extract the URL and return early
+            *data = strdup((char *)ptr + 9);
+            return size * nmemb;
+        }
     }
     return size * nmemb;
 }
 
-std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::json post_data) {
-    // Set the URL to request
+std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::json post_data, std::optional<std::string> file_path) {
+    // Set the URL to request and the authentication method
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
 
     // Buffer to store the response body
     std::string response;
@@ -98,11 +108,40 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
     else {
         // POST request
         curl_easy_setopt(curl, CURLOPT_POST, 1);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strdup(post_data.dump().c_str()));
 
-        // Set the content type to JSON
         struct curl_slist *headers = NULL;
-        headers = curl_slist_append(NULL, "Content-Type: application/json");
+
+        // If we have a file path, upload the file
+        if (file_path) {
+            web::http::MultipartParser parser;
+
+            // Add the post data
+            for (auto& [key, value] : post_data.items()) {
+                parser.AddParameter(key, value);
+                std::cout << "Adding parameter: <" << key << "> = <" << value << ">" << std::endl;
+            }
+
+            // Add the file
+            parser.AddFile("file", file_path->c_str());
+
+            // Set the content type
+            std::string type = "Content-Type: multipart/form-data; boundary=";
+            type.append(parser.boundary());
+            headers = curl_slist_append(NULL, type.c_str());
+            std::cout << "Content type: <" << type << ">" << std::endl;
+
+            // Add the body
+            std::string body = parser.GenBodyContent();
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+            std::cout << "body: <<<<" << body << ">>>>" << std::endl;
+
+            // Disable authentication for file uploads
+            curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_NONE);
+        } else {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strdup(post_data.dump().c_str()));
+            headers = curl_slist_append(NULL, "Content-Type: application/json");
+        }
+
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
 
@@ -120,9 +159,22 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
     } else {
         long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code != 200) {
+
+        // Check for a redirect
+        if (response_code >= 300 && response_code < 400) {
+            // Check if we got a location header
+            if (!next_page.empty()) {
+                // The Canvas API is weird. The only time it should return a redirect is after
+                // a file upload, and it specifically says to make a GET request, rather
+                // than a POST request, even though that would technically be more correct.
+                return _requestURL(next_page, NULL, {});
+            }
+        }
+
+        // HTTP success codes are in the 200 range, check for errors
+        if (response_code >= 300) {
 #ifdef HTTP_VERBOSE
-            printf("Received HTTP response code %ld for URL %s.", response_code, url.c_str());
+            printf("Received HTTP response code %ld for URL %s.\n", response_code, url.c_str());
 #endif
             return std::nullopt;
         }
@@ -132,14 +184,14 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
         curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
         if (content_type == NULL || strncmp(content_type, "application/json", 16) != 0) {
 #ifdef HTTP_VERBOSE
-            printf("Received invalid content type: %s for URL %s.", content_type, url.c_str());
+            printf("Received invalid content type: %s for URL %s.\n", content_type, url.c_str());
 #endif
             return std::nullopt;
         }
 
         nlohmann::json result = nlohmann::json::parse(response);
         if (!next_page.empty()) {
-            std::optional<nlohmann::json> next_result = _requestURL(next_page, post_data);
+            std::optional<nlohmann::json> next_result = _requestURL(next_page, post_data, file_path);
             if (next_result) {
                 // Merge the two JSON objects
                 if (result.is_array() && next_result->is_array()) {
@@ -148,12 +200,17 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
                     result.update(next_result.value());
                 } else {
 #ifdef HTTP_VERBOSE
-                    printf("Cannot merge JSON objects of types %s and %s.", result.type_name(), next_result->.type_name());
+                    printf("Cannot merge JSON objects of types %s and %s.\n", result.type_name(), next_result->type_name());
 #endif
                     return std::nullopt;
                 }
             }
         }
+
+        if (file_path) {
+            std::cout << result.dump(4) << std::endl;
+        }
+
         return result;
     }
 }

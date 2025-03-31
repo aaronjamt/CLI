@@ -2,6 +2,7 @@
 #define _ASSIGNMENT_HPP
 
 #include "object.hpp"
+#include "file.hpp"
 #include "submission.hpp"
 
 #include <optional>
@@ -11,6 +12,9 @@ class Assignment : public CanvasObject {
         Assignment(CanvasAPI* canvas, CanvasObject *course, nlohmann::json attributes) : CanvasObject(canvas, attributes), course(course) {}
 
         std::optional<Submission> submission();
+
+        std::optional<File> upload_file(const char* path);
+        bool submit(Submission submission);
 
         // How many points is this assignment worth?
         std::optional<double> value();
