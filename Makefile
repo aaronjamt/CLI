@@ -1,7 +1,7 @@
 # Files for main C program
 SRC = main.c
 # Files for Canvas library
-LIB_FILES = canvas/api.cpp canvas/assignment.cpp canvas/discussion.cpp canvas/canvas.cpp canvas/course.cpp canvas/quiz.cpp canvas/submission.cpp canvas/iso8601.cpp canvas/andsonye/multipart_parser.cpp
+LIB_FILES = canvas/api.cpp canvas/assignment.cpp canvas/discussion.cpp canvas/canvas.cpp canvas/course.cpp canvas/module.cpp canvas/module_item.cpp canvas/quiz.cpp canvas/submission.cpp canvas/iso8601.cpp canvas/andsonye/multipart_parser.cpp
 
 # Name of compiled application
 EXC_NAME = cli.out

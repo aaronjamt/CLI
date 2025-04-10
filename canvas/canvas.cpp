@@ -15,6 +15,19 @@ std::vector<Course> Canvas::get_courses() {
     return courses;
 }
 
+std::vector<Module> Canvas::get_modules(long course_id) {
+    std::string endpoint = "/api/v1/courses/" + std::to_string(course_id) + "/modules";
+    std::optional<nlohmann::json> json_response = _request(endpoint.c_str());
+    if (!json_response) return {};
+
+    std::vector<Module> modules;
+    for (auto &m : json_response.value()) {
+        modules.emplace_back(this, m);
+    }
+    return modules;
+}
+
+
 std::optional<Course> Canvas::get_course_by_id(unsigned long course_id) {
     std::string endpoint = "/api/v1/courses/" + std::to_string(course_id) + "?include[]=total_scores";
     std::optional<nlohmann::json> json_response = _request(endpoint.c_str());

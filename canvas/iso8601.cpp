@@ -1,6 +1,6 @@
 #include "iso8601.hpp"
 
-// Written by ChatGPT, modified by me
+// Written by ChatGPT, modified by Aaronjamt
 
 #include <iomanip>
 #include <sstream>

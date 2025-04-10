@@ -29,6 +29,7 @@ int get_key_press() {
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
 }
+
 int menu(const char *header, int num_items, const char *items[]) {
     int selected_item = 0;
     while (1) {
@@ -99,20 +100,20 @@ int main(int argc, char *argv[]) {
 
     printf("\n");
     srand(time(NULL));
-    while (1) {
         const char* objectList[100] = {
             "Announcements",
             "Quizzes",
             "Assignments",
             "Discussions",
+            "Modules",
             "I'm Feeling Lucky"
         };
 
-        int selected_object = menu("Select an object:", 5, objectList);
-        if (selected_object == 4) {
+        int selected_object = menu("Select an object:", 6, objectList);
+        if (selected_object == 5) {
             printf("Randomly selecting an object...\n");
             sleep(3);
-            selected_object = rand() % 4;
+            selected_object = rand() % 5;
         }
         switch (selected_object) {
             case 0:
@@ -267,6 +268,7 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case 3:
+                printf("\e[1;1H\e[2J");
                 printf("Discussions for %s:\n", selected_course.name());
                 for (Discussion discussion : selected_course.discussions()) {
                     printf("> ID #%ld: '%s' posted by %s at %s", discussion.id(), discussion.name(), discussion.poster_name(), discussion.posted_at());
@@ -277,9 +279,27 @@ int main(int argc, char *argv[]) {
                     printf("  > %s\n", discussion.body());
                 }
                 break;
+            case 4:
+                printf("\e[1;1H\e[2J");
+                std::vector<Module> modules = selected_course.modules();
+                std::vector<const char*> module_titles;
+                std::vector<std::string> temp_titles;
 
+                for (Module &module : modules) {
+                    temp_titles.push_back(module.name());
+                }
+                for (auto &s : temp_titles) module_titles.push_back(s.c_str()); // thanks copilot
+
+                int selected_module_index = menu("Select a module: ", module_titles.size(), module_titles.data());
+                Module selected_module = modules[selected_module_index];
+                printf("\e[1;1H\e[2J");
+
+                printf("Module: %s\n", selected_module.name().c_str());
+                for (ModuleItem &item : selected_module.items()) {
+                    printf("    > [%s] %s\n", item.type().c_str(), item.title().c_str());
+                break;
+            }
         }
-    }
 
     printf("\n");
 

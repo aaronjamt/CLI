@@ -5,6 +5,7 @@
 #include "discussion.hpp"
 #include "object.hpp"
 #include "quiz.hpp"
+#include "module.hpp"
 
 class Course : public CanvasObject {
     public:
@@ -15,6 +16,7 @@ class Course : public CanvasObject {
         std::vector<Discussion> discussions();
         std::vector<Assignment> assignments();
         std::vector<Quiz> quizzes();
+        std::vector<Module> modules();
 
         std::optional<Assignment> assignment(std::string id);
 
