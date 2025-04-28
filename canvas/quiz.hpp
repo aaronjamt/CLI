@@ -63,6 +63,7 @@ class QuizQuestion : public CanvasObject {
         std::vector<std::string> get_answers();
         
         bool set_answer(int answer);
+        bool set_answer(double answer);
         bool set_answer(char* answer);
 
         QuizQuestionType type();

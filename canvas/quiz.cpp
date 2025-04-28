@@ -129,7 +129,7 @@ bool QuizSubmission::update_answers() {
 
     nlohmann::json json_answers;
     for (QuizQuestion question : _questions) {
-        printf("Checking answer for question %s\n", question.name());
+        //printf("Checking answer for question %s\n", question.name());
         if (question.answer().has_value()) {
             json_answers.push_back({
                 {"id", question.id()},
@@ -226,20 +226,20 @@ std::vector<std::string> QuizQuestion::get_answers() {
 }
 
 bool QuizQuestion::set_answer(int answer) {
-    if (type() == MultipleChoice || type() == TrueFalse) {
-        if (attributes.contains("answers")) {
-            attributes["answer"] = attributes["answers"][answer]["id"];
-            return true;
-        }
-    } else if (type() == Number) {
-        attributes["answer"] = answer;
+    if (attributes.contains("answers")) {
+        attributes["answer"] = attributes["answers"][answer]["id"];
         return true;
     }
     return false;
 }
 
-bool QuizQuestion::set_answer(char *answer) {
+bool QuizQuestion::set_answer(double answer) {
     attributes["answer"] = answer;
+    return true;
+}
+
+bool QuizQuestion::set_answer(char *answer) {
+    attributes["answer"] = strdup(answer);
     return true;
 }
 

@@ -31,6 +31,9 @@ int get_key_press() {
 }
 
 int menu(const char *header, int num_items, const char *items[]) {
+    // Hide the cursor
+    printf("\e[?25l");
+
     int selected_item = 0;
     while (1) {
         printf("\e[1;1H\e[2J%s\n\n", header);
@@ -47,6 +50,9 @@ int menu(const char *header, int num_items, const char *items[]) {
             selected_item++;
             if (selected_item >= num_items) selected_item = 0;
         } else if (input == ENTER) {
+            // Show the cursor before exiting
+            printf("\e[?25h");
+
             return selected_item;
         }
     }
@@ -58,11 +64,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     Canvas canvas(argv[1], argv[2]);
+
+    const char *course_names[100];
+    int num_courses=0;
+
+    printf("\e[1;1H\e[2J");
     printf("\x1b[30;47mHello, %s! Welcome to the Canvas LMS Interface (CLI).\x1b[K\x1b[0m\n", canvas.get_current_user()->name());
-    printf("Here are your courses:\n");
+    printf("Fetching all courses from Canvas (this may take a bit)...\n");
     std::vector<Course> courses = canvas.get_courses();
-    std::vector<std::string> formatted_courses;
-    std::vector<const char *> course_names;
 
     for (Course course : courses) {
         std::string realGradeFuckingForRealThisTime;
@@ -72,22 +81,20 @@ int main(int argc, char *argv[]) {
             realGradeFuckingForRealThisTime = "N/A";
         }
 
-        std::string announcements;
+        char announcements[1000] = {0};
+        int num_announcements=0;
+        int announcements_idx=0;
         for (Discussion announcement : course.announcements()) {
-            announcements.append("  > " + (std::string)announcement.name() + "\n");
+            announcements_idx += sprintf(announcements+announcements_idx, "  > %s\n", announcement.name());
         }
 
-        formatted_courses.push_back(
-            "> ID #" + std::to_string(course.id()) + ": " + course.name() + " | Grade: " + realGradeFuckingForRealThisTime + "\n" +
-            std::to_string(course.announcements().size()) + " announcements:\n" + announcements
-        );
+        char course_info[1000];
+        sprintf(course_info, "> ID #%ld: %s | Grade: %s\n%d announcements:\n%s", course.id(), course.name(), realGradeFuckingForRealThisTime.c_str(), num_announcements, announcements);
+        printf("%s\n", course_info);
+        course_names[num_courses++] = strdup(course_info);
     }
 
-    for (const std::string &to_c : formatted_courses) {
-        course_names.push_back(to_c.c_str());
-    }
-
-    int selected_item = menu("Select a course:", course_names.size(), course_names.data());
+    int selected_item = menu("Select a course:", num_courses, course_names);
     Course selected_course = courses[selected_item];
 
     printf("\e[1;1H\e[2J");
@@ -100,7 +107,9 @@ int main(int argc, char *argv[]) {
 
     printf("\n");
     srand(time(NULL));
-        const char* objectList[100] = {
+    while (1) {
+        const char* objectList[] = {
+            "Back",
             "Announcements",
             "Quizzes",
             "Assignments",
@@ -109,7 +118,9 @@ int main(int argc, char *argv[]) {
             "I'm Feeling Lucky"
         };
 
-        int selected_object = menu("Select an object:", 6, objectList);
+        int selected_object = menu("Select an object:", sizeof(objectList)/sizeof(objectList[0]), objectList);
+        if (selected_object-- == 0) break;
+
         if (selected_object == 5) {
             printf("Randomly selecting an object...\n");
             sleep(3);
@@ -121,7 +132,7 @@ int main(int argc, char *argv[]) {
                 printf("\nAnnouncements for %s:\n", selected_course.name());
 
                 for (Discussion announcement : selected_course.announcements()) {
-                    printf("> ID #%ld: '%s' posted by %s at %s", announcement.id(), announcement.name(), announcement.poster_name(), announcement.posted_at());
+                    printf("> ID #%ld: '%s' posted by %s at %s\n", announcement.id(), announcement.name(), announcement.poster_name(), announcement.posted_at());
                     // TODO: Not working yet
                     // if (announcement.assignment()) {
                     //     printf(" | Due at: %s", announcement.assignment()->due_date());
@@ -137,17 +148,20 @@ int main(int argc, char *argv[]) {
                     printf("> ID #%ld: %s | Due at: %s\n", quiz.id(), quiz.name(), quiz.due_date());
                 }
 
-                printf("Please select a quiz:\n");
-                sleep(1);
+                printf("\nPress Enter to continue.");
+                while (getchar() != '\n');
 
                 if (1) {
                     std::vector<Quiz> quizzes = selected_course.quizzes();
                     std::vector<const char*> quiz_names;
+                    quiz_names.push_back("Back");
                     for (Quiz quiz : quizzes) {
                         quiz_names.push_back(quiz.name());
                     }
 
                     int selected_quiz = menu("Select a quiz:", quiz_names.size(), quiz_names.data());
+                    if (selected_quiz-- == 0) break;
+
                     Quiz quiz = quizzes[selected_quiz];
                     std::optional<QuizSubmission> quiz_submission;
 
@@ -172,9 +186,12 @@ int main(int argc, char *argv[]) {
                     sleep(1);
 
                     if (quiz_submission) {
-                        printf("Quiz submission ID: %ld\n", quiz_submission->id());
                         std::vector<QuizQuestion>& questions = quiz_submission->questions();
+                        printf("There are %ld questions in this quiz.\n", questions.size());
+                        printf("Press Enter to continue...\n");
+                        while (getchar() != '\n');
                         for (QuizQuestion& question : questions) {
+                            printf("Question '%s' type is %d\n", question.name(), question.type());
                             switch (question.type()) {
                                 case MultipleChoice:
                                 case TrueFalse:
@@ -195,10 +212,9 @@ int main(int argc, char *argv[]) {
                                     }
                                 case Number:
                                     {
-                                        printf("\e[1;1H\e[2J%s\n\n", question.name());
+                                        printf("\e[1;1H\e[2J%s\n\n# ", question.name());
 
                                         double answer;
-                                        printf("Enter a number: ");
                                         scanf("%lf", &answer);
 
                                         if (!question.set_answer(answer)) {
@@ -209,7 +225,7 @@ int main(int argc, char *argv[]) {
                                     }
                                 case Text:
                                     {
-                                        printf("\e[1;1H\e[2J%s\n\n", question.name());
+                                        printf("\e[1;1H\e[2J%s\n\n> ", question.name());
 
                                         char answer[1024];
                                         fgets(answer, 1024, stdin);
@@ -230,6 +246,7 @@ int main(int argc, char *argv[]) {
                                     }
                             }
                         }
+                        printf("\n\nUploading selected answers...\n");
                         if (quiz_submission->update_answers()) {
                             printf("Answers updated successfully. Submitting quiz...\n");
                             if (quiz_submission->submit()) {
@@ -241,7 +258,6 @@ int main(int argc, char *argv[]) {
                             printf("Failed to update answers.\n");
                         }
                     } else printf("Invalid quiz_submission.\n");
-                    sleep(5);
                 }
                 break;
             case 2:
@@ -266,12 +282,20 @@ int main(int argc, char *argv[]) {
                     }
                     printf("\n");
                 }
+                printf("\nPress Enter to continue...\n");
+                while (getchar() != '\n');
+
+                printf("Upload file returned %s.\n", 
+
+                    selected_course.assignments()[0].upload_file("./t.txt")
+                    
+                ? "success" : "failure");
                 break;
             case 3:
                 printf("\e[1;1H\e[2J");
                 printf("Discussions for %s:\n", selected_course.name());
                 for (Discussion discussion : selected_course.discussions()) {
-                    printf("> ID #%ld: '%s' posted by %s at %s", discussion.id(), discussion.name(), discussion.poster_name(), discussion.posted_at());
+                    printf("> ID #%ld: '%s' posted by %s at %s\n", discussion.id(), discussion.name(), discussion.poster_name(), discussion.posted_at());
                     // TODO: Not working yet
                     // if (discussion.assignment()) {
                     //     printf(" | Due at: %s", discussion.assignment()->due_date());
@@ -301,13 +325,11 @@ int main(int argc, char *argv[]) {
             }
         }
 
-    printf("\n");
+        printf("Press Enter to continue...\n");
+        while (getchar() != '\n');
+    }
 
-    /*
-    // TODO: File upload not yet working
-    Assignment y = selected_course.assignments()[0];
-    printf("Upload file returned %s.\n", y.upload_file("./t.txt") ? "success" : "failure");
-    */
+    printf("\n");
 
     return 0;
 }

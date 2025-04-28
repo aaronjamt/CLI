@@ -11,7 +11,7 @@
 // #define CURL_VERBOSE
 
 // Uncomment to enable logging HTTP errors
-#define HTTP_VERBOSE
+// #define HTTP_VERBOSE
 
 // Class constructor initializes libcURL
 CanvasAPI::CanvasAPI(const char *url, const char* token) {
