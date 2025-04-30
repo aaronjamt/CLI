@@ -32,7 +32,7 @@ std::string ISO8601::format_to_human(const std::string& iso8601) {
 
     // Create a human-readable format
     char buffer[100];
-    strftime(buffer, sizeof(buffer), "%A, %B %e", &local_tm);
+    strftime(buffer, sizeof(buffer), "%A, %B%e", &local_tm);
     
     std::ostringstream output;
     output << buffer << get_day_suffix(local_tm.tm_mday) 

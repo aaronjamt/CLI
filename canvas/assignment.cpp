@@ -51,8 +51,6 @@ std::optional<File> Assignment::upload_file(const char* path) {
         return {};
     }
 
-    std::cout << "Request 1:\n" << response.value().dump(4) << std::endl;
-    
     // Fetch the URL to actually upload to
     std::string upload_url = response.value()["upload_url"];
     if (!upload_url.empty()) {
@@ -62,11 +60,13 @@ std::optional<File> Assignment::upload_file(const char* path) {
         }
         nlohmann::json upload_params = response.value()["upload_params"];
 
-        std::cout << "Upload URL: " << upload_url << std::endl;
-        std::cout << "Upload Params:\n" << upload_params.dump(4) << std::endl;
-        
+        std::string file_param = "file";
+        if (response.value().contains("file_param") && response.value()["file_param"].is_string()) {
+            file_param = response.value()["file_param"];
+        }
+
         // Perform the upload
-        std::optional<nlohmann::json> upload_response = api->_requestURL(upload_url, upload_params, path);
+        std::optional<nlohmann::json> upload_response = api->_requestURL(upload_url, upload_params, path, file_param);
         if (upload_response) {
             return File(api, upload_response.value());
         }

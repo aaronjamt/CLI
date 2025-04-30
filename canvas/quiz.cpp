@@ -129,12 +129,14 @@ bool QuizSubmission::update_answers() {
 
     nlohmann::json json_answers;
     for (QuizQuestion question : _questions) {
-        //printf("Checking answer for question %s\n", question.name());
+        // printf("Checking answer for question %s\n", question.name());
         if (question.answer().has_value()) {
             json_answers.push_back({
                 {"id", question.id()},
                 {"answer", question.answer().value()}
             });
+        // } else {
+            // printf("No answer for question %s\n", question.name());
         }
     }
 
@@ -147,8 +149,6 @@ bool QuizSubmission::update_answers() {
     if (access_code != NULL) {
         data["access_code"] = access_code;
     }
-
-    printf("POST data for update_answers: %s\n", data.dump().c_str());
 
     // Make the response and return whether it succeeded (we don't care about the response,
     // only whether there was one).
@@ -225,7 +225,7 @@ std::vector<std::string> QuizQuestion::get_answers() {
     return answers;
 }
 
-bool QuizQuestion::set_answer(int answer) {
+bool QuizQuestion::set_answer_option(int answer) {
     if (attributes.contains("answers")) {
         attributes["answer"] = attributes["answers"][answer]["id"];
         return true;
@@ -243,8 +243,8 @@ bool QuizQuestion::set_answer(char *answer) {
     return true;
 }
 
-std::optional<long> QuizQuestion::answer() {
-    if (attributes.contains("answer") && attributes["answer"].is_number()) {
+std::optional<nlohmann::json> QuizQuestion::answer() {
+    if (attributes.contains("answer")) {
         return attributes["answer"];
     }
     return {};

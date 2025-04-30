@@ -64,6 +64,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     Canvas canvas(argv[1], argv[2]);
+    while (1) {
 
     const char *course_names[100];
     int num_courses=0;
@@ -126,139 +127,167 @@ int main(int argc, char *argv[]) {
             sleep(3);
             selected_object = rand() % 5;
         }
-        switch (selected_object) {
-            case 0:
-                printf("\e[1;1H\e[2J");
-                printf("\nAnnouncements for %s:\n", selected_course.name());
+        
+        int selected_item = menu("Select a course:", num_courses, course_names);
+        Course selected_course = courses[selected_item];
 
-                for (Discussion announcement : selected_course.announcements()) {
-                    printf("> ID #%ld: '%s' posted by %s at %s\n", announcement.id(), announcement.name(), announcement.poster_name(), announcement.posted_at());
-                    // TODO: Not working yet
-                    // if (announcement.assignment()) {
-                    //     printf(" | Due at: %s", announcement.assignment()->due_date());
-                    // }
-                    printf("  > %s\n", announcement.body());
-                }
-                break;
-            case 1:
-                printf("\e[1;1H\e[2J");
-                printf("\nQuizzes for %s:\n", selected_course.name());
+        printf("\e[1;1H\e[2J");
 
-                for (Quiz quiz : selected_course.quizzes()) {
-                    printf("> ID #%ld: %s | Due at: %s\n", quiz.id(), quiz.name(), quiz.due_date());
-                }
+        if (selected_course.get_current_grade().has_value()) {
+            printf("Selected course: ID #%ld: %s | Grade: %.2f%%\n", selected_course.id(), selected_course.name(), selected_course.get_current_grade().value());
+        } else {
+            printf("Selected course: ID #%ld: %s | Grade: N/A\n", selected_course.id(), selected_course.name());
+        }
 
-                printf("\nPress Enter to continue.");
-                while (getchar() != '\n');
+        printf("\n");
+        srand(time(NULL));
+        while (1) {
+            const char* objectList[] = {
+                "Back",
+                "Announcements",
+                "Quizzes",
+                "Assignments",
+                "Discussions",
+                "I'm Feeling Lucky"
+            };
 
-                if (1) {
-                    std::vector<Quiz> quizzes = selected_course.quizzes();
-                    std::vector<const char*> quiz_names;
-                    quiz_names.push_back("Back");
-                    for (Quiz quiz : quizzes) {
-                        quiz_names.push_back(quiz.name());
+            int selected_object = menu("Select an object:", sizeof(objectList)/sizeof(objectList[0]), objectList);
+            if (selected_object-- == 0) break;
+
+            if (selected_object == 4) {
+                printf("Randomly selecting an object...\n");
+                sleep(3);
+                selected_object = rand() % 4;
+            }
+            switch (selected_object) {
+                case 0:
+                    printf("\e[1;1H\e[2J");
+                    printf("\nAnnouncements for %s:\n", selected_course.name());
+
+                    for (Discussion announcement : selected_course.announcements()) {
+                        printf("> ID #%ld: '%s' posted by %s at %s\n", announcement.id(), announcement.name(), announcement.poster_name(), announcement.posted_at());
+                        // TODO: Not working yet
+                        // if (announcement.assignment()) {
+                        //     printf(" | Due at: %s", announcement.assignment()->due_date());
+                        // }
+                        printf("  > %s\n", announcement.body());
+                    }
+                    break;
+                case 1:
+                    printf("\e[1;1H\e[2J");
+                    printf("\nQuizzes for %s:\n", selected_course.name());
+
+                    for (Quiz quiz : selected_course.quizzes()) {
+                        printf("> ID #%ld: %s | Due at: %s\n", quiz.id(), quiz.name(), quiz.due_date());
                     }
 
-                    int selected_quiz = menu("Select a quiz:", quiz_names.size(), quiz_names.data());
-                    if (selected_quiz-- == 0) break;
-
-                    Quiz quiz = quizzes[selected_quiz];
-                    std::optional<QuizSubmission> quiz_submission;
-
-                    if (quiz.has_access_code()) {
-                        printf("This quiz requires an access code. Please enter it now.\n");
-                        while (1) {
-                            char access_code[200];
-                            scanf("%s", access_code);
-                            if (!quiz.validate_access_code(access_code)) {
-                                printf("Invalid access code. Please try again: ");
-                            } else {
-                                printf("Starting quiz...\n");
-                                quiz_submission = quiz.start_quiz(access_code);
-                                break;
-                            }
+                    printf("\nPress Enter to continue.");
+                    while (getchar() != '\n');
+                    if (1) {
+                        std::vector<Quiz> quizzes = selected_course.quizzes();
+                        std::vector<const char*> quiz_names;
+                        quiz_names.push_back("Back");
+                        for (Quiz quiz : quizzes) {
+                            quiz_names.push_back(quiz.name());
                         }
-                    } else {
-                        // Start without an access code if one is not required
-                        printf("Starting quiz...\n");
-                        quiz_submission = quiz.start_quiz();
-                    }
-                    sleep(1);
+        
+                        int selected_quiz = menu("Select a quiz:", quiz_names.size(), quiz_names.data());
+                        if (selected_quiz-- == 0) break;
+    
+                        Quiz quiz = quizzes[selected_quiz];
+                        std::optional<QuizSubmission> quiz_submission;
 
-                    if (quiz_submission) {
-                        std::vector<QuizQuestion>& questions = quiz_submission->questions();
-                        printf("There are %ld questions in this quiz.\n", questions.size());
-                        printf("Press Enter to continue...\n");
-                        while (getchar() != '\n');
-                        for (QuizQuestion& question : questions) {
-                            printf("Question '%s' type is %d\n", question.name(), question.type());
-                            switch (question.type()) {
-                                case MultipleChoice:
-                                case TrueFalse:
-                                    {
-                                        const char* answersList[200];
-                                        int i = 0;
-                                        for (std::string answer : question.get_answers()) {
-                                            answersList[i++] = strdup(answer.c_str());
-                                        }
-
-                                        int selected_answer = menu(question.name(), i, answersList);
-                                        if (!question.set_answer(selected_answer)) {
-                                            // TODO: Better error handling
-                                            printf("Failed to set answer.\n");
-                                            sleep(1);
-                                        }
-                                        break;
-                                    }
-                                case Number:
-                                    {
-                                        printf("\e[1;1H\e[2J%s\n\n# ", question.name());
-
-                                        double answer;
-                                        scanf("%lf", &answer);
-
-                                        if (!question.set_answer(answer)) {
-                                            // TODO: Better error handling
-                                            printf("Failed to set answer.\n");
-                                            sleep(1);
-                                        }
-                                    }
-                                case Text:
-                                    {
-                                        printf("\e[1;1H\e[2J%s\n\n> ", question.name());
-
-                                        char answer[1024];
-                                        fgets(answer, 1024, stdin);
-                                        if (!question.set_answer(answer)) {
-                                            // TODO: Better error handling
-                                            printf("Failed to set answer.\n");
-                                            sleep(1);
-                                        }
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        printf("\e[1;1H\e[2J%s\n\n", question.name());
-                                        // Wait until the user hits enter to continue
-                                        printf("No answer needed for this question. Press enter to continue.\n");
-                                        scanf("%s", NULL);
-                                        break;
-                                    }
-                            }
-                        }
-                        printf("\n\nUploading selected answers...\n");
-                        if (quiz_submission->update_answers()) {
-                            printf("Answers updated successfully. Submitting quiz...\n");
-                            if (quiz_submission->submit()) {
-                                printf("Quiz submitted successfully.\n");
-                            } else {
-                                printf("Failed to submit quiz.\n");
+                        if (quiz.has_access_code()) {
+                            printf("This quiz requires an access code. Please enter it now.\n");
+                            while (1) {
+                                char access_code[200];
+                                scanf("%s", access_code);
+                                if (!quiz.validate_access_code(access_code)) {
+                                    printf("Invalid access code. Please try again: ");
+                                } else {
+                                    printf("Starting quiz...\n");
+                                    quiz_submission = quiz.start_quiz(access_code);
+                                    break;
+                                }
                             }
                         } else {
-                            printf("Failed to update answers.\n");
+                            // Start without an access code if one is not required
+                            printf("Starting quiz...\n");
+                            quiz_submission = quiz.start_quiz();
                         }
-                    } else printf("Invalid quiz_submission.\n");
-                }
+
+                        if (quiz_submission) {
+                            std::vector<QuizQuestion>& questions = quiz_submission->questions();
+                            printf("There are %ld questions in this quiz.\n", questions.size());
+                            printf("Press Enter to continue...\n");
+                            while (getchar() != '\n');
+                            for (QuizQuestion& question : questions) {
+                                printf("Question '%s' type is %d\n", question.name(), question.type());
+                                switch (question.type()) {
+                                    case MultipleChoice:
+                                    case TrueFalse:
+                                        {
+                                            const char* answersList[200];
+                                            int i = 0;
+                                            for (std::string answer : question.get_answers()) {
+                                                answersList[i++] = strdup(answer.c_str());
+                                            }
+
+                                            int selected_answer = menu(question.name(), i, answersList);
+                                            if (!question.set_answer(selected_answer)) {
+                                                // TODO: Better error handling
+                                                printf("Failed to set answer.\n");
+                                                sleep(1);
+                                            }
+                                            break;
+                                        }
+                                    case Number:
+                                        {
+                                            printf("\e[1;1H\e[2J%s\n\n# ", question.name());
+
+                                            double answer;
+                                            scanf("%lf", &answer);
+
+                                            if (!question.set_answer(answer)) {
+                                                // TODO: Better error handling
+                                                printf("Failed to set answer.\n");
+                                                sleep(1);
+                                            }
+                                        }
+                                    case Text:
+                                        {
+                                            printf("\e[1;1H\e[2J%s\n\n> ", question.name());
+
+                                            char answer[1024];
+                                            fgets(answer, 1024, stdin);
+                                            if (!question.set_answer(answer)) {
+                                                // TODO: Better error handling
+                                                printf("Failed to set answer.\n");
+                                                sleep(1);
+                                            }
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            printf("\e[1;1H\e[2J%s\n\n", question.name());
+                                            // Wait until the user hits enter to continue
+                                            printf("No answer needed for this question. Press enter to continue.\n");
+                                            scanf("%s", NULL);
+                                            break;
+                                        }
+                                }
+                            }
+                            printf("\n\nUploading selected answers...\n");
+                            if (quiz_submission->update_answers()) {
+                                printf("Answers updated successfully. Submitting quiz...\n");
+                                if (quiz_submission->submit()) {
+                                    printf("Quiz submitted successfully.\n");
+                                } else {
+                                    printf("Failed to submit quiz.\n");
+                                }
+                            }
+                        } else printf("Invalid quiz_submission.\n");
+                    }
                 break;
             case 2:
                 printf("\e[1;1H\e[2J");
@@ -267,19 +296,6 @@ int main(int argc, char *argv[]) {
                     printf("> ID #%ld: %s | Due at: %s", assignment.id(), assignment.name(), assignment.due_date());
                 
                     // TODO: add due date function
-
-                    // if (assignment.due_date())
-                    //     printf("\nDue date: %s\n", assignment.due_date().value().c_str());
-                    // else
-                    //     printf("Due date: N/A\n");
-        
-                    if (assignment.submission()) {
-                        Submission submission = assignment.submission().value();
-                        if (submission.score())
-                            printf(" | Grade: %.2f%%", submission.score().value());
-                        else
-                            printf(" | Grade: N/A");
-                    }
                     printf("\n");
                 }
                 printf("\nPress Enter to continue...\n");

@@ -75,14 +75,20 @@ size_t header_callback(void *ptr, size_t size, size_t nmemb, std::string *data) 
         // the header starts with "LOCATION:", case insensitive
         if (strncasecmp((char *)ptr, "LOCATION:", 9) == 0) {
             // If we found the location, extract the URL and return early
-            *data = strdup((char *)ptr + 9);
+            std::string url = (char *)ptr + 9;
+            
+            // Strip any whitespace
+            url.erase(remove_if(url.begin(), url.end(), isspace), url.end());
+
+            // Duplicate (so it doesn't get freed when this function returns) and store the URL
+            *data = strdup(url.c_str());
             return size * nmemb;
         }
     }
     return size * nmemb;
 }
 
-std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::json post_data, std::optional<std::string> file_path) {
+std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::json post_data, std::optional<std::string> file_path, std::string file_param) {
     // Set the URL to request and the authentication method
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
@@ -101,15 +107,16 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &next_page);
 
+    struct curl_slist *headers = NULL;
+
     // Set appropriate HTTP request type
-    if (post_data == NULL)
+    if (post_data == NULL) {
         // GET request
         curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
-    else {
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, NULL);
+    } else {
         // POST request
         curl_easy_setopt(curl, CURLOPT_POST, 1);
-
-        struct curl_slist *headers = NULL;
 
         // If we have a file path, upload the file
         if (file_path) {
@@ -118,22 +125,19 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
             // Add the post data
             for (auto& [key, value] : post_data.items()) {
                 parser.AddParameter(key, value);
-                std::cout << "Adding parameter: <" << key << "> = <" << value << ">" << std::endl;
             }
 
             // Add the file
-            parser.AddFile("file", file_path->c_str());
+            parser.AddFile(file_param, file_path->c_str());
 
             // Set the content type
             std::string type = "Content-Type: multipart/form-data; boundary=";
             type.append(parser.boundary());
-            headers = curl_slist_append(NULL, type.c_str());
-            std::cout << "Content type: <" << type << ">" << std::endl;
+            headers = curl_slist_append(headers, type.c_str());
 
             // Add the body
             std::string body = parser.GenBodyContent();
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
-            std::cout << "body: <<<<" << body << ">>>>" << std::endl;
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strdup(body.c_str()));
 
             // Disable authentication for file uploads
             curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_NONE);
@@ -150,7 +154,7 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
     // Check for errors
     if(res != CURLE_OK) {
 #ifdef HTTP_VERBOSE
-        printf("Error making HTTP %s request to %s: %s\n", 
+        printf("Error making HTTP %s request to '%s': %s\n", 
             post_data == NULL ? "GET" : "POST",
             url.c_str(),
             curl_easy_strerror(res));
@@ -167,7 +171,7 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
                 // The Canvas API is weird. The only time it should return a redirect is after
                 // a file upload, and it specifically says to make a GET request, rather
                 // than a POST request, even though that would technically be more correct.
-                return _requestURL(next_page, NULL, {});
+                return _requestURL(next_page, NULL, {}, "");
             }
         }
 
@@ -191,7 +195,8 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
 
         nlohmann::json result = nlohmann::json::parse(response);
         if (!next_page.empty()) {
-            std::optional<nlohmann::json> next_result = _requestURL(next_page, post_data, file_path);
+            // In theory, this should make the same request to the new URL, but it seems like Canvas API always expects an HTTP GET
+            std::optional<nlohmann::json> next_result = _requestURL(next_page, NULL, {}, "");
             if (next_result) {
                 // Merge the two JSON objects
                 if (result.is_array() && next_result->is_array()) {
@@ -207,9 +212,11 @@ std::optional<nlohmann::json> CanvasAPI::_requestURL(std::string url, nlohmann::
             }
         }
 
+#ifdef HTTP_VERBOSE
         if (file_path) {
             std::cout << result.dump(4) << std::endl;
         }
+#endif
 
         return result;
     }

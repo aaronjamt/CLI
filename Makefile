@@ -18,6 +18,9 @@ BASE_URL ?= https://canvas.tail7fcea.ts.net
 run: build
 	@./$(EXC_NAME) $(BASE_URL) $(TOKEN)
 
+erau:
+	@./$(EXC_NAME) https://erau.instructure.com 2386~hyrtX8UvvL9rTwLFna4c8xf4GGaxH8mu2AfCu46cafVt694CYTyAzzNNXrZrBGzN
+
 # When running make debug, build and run with GDB
 debug: build
 	@gdb -ex run --args ./$(EXC_NAME) $(BASE_URL) $(TOKEN)

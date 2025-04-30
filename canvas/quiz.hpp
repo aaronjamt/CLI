@@ -62,13 +62,13 @@ class QuizQuestion : public CanvasObject {
         nlohmann::json get_answers_json();
         std::vector<std::string> get_answers();
         
-        bool set_answer(int answer);
+        bool set_answer_option(int answer);
         bool set_answer(double answer);
         bool set_answer(char* answer);
 
         QuizQuestionType type();
 
-        std::optional<long> answer();
+        std::optional<nlohmann::json> answer();
 };
 
 #endif//_QUIZ_HPP
